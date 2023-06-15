@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
+const { users } = require('./routers');
+
 const app = express();
 app.use(express.static('Public'));
 app.use(express.json());
@@ -12,6 +14,8 @@ app.get('/', (req, res) => {
         '<h1>API</h1>'
     )
 });
+
+app.use('/auth', users);
 
 app.listen(process.env.PORT, () => {
     console.log('API running in port: ', process.env.PORT);
