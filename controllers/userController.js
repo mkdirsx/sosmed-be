@@ -92,7 +92,7 @@ module.exports = {
 
             return res.status(200).send({
                 isError: false,
-                message: 'GET Success',
+                message: `Welcome, ${result.username} !`,
                 data: {
                     id: result.id,
                     username: result.username,
