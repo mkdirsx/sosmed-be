@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { checkSchema, validationResult } = require('express-validator');
+const { profilePicture } = require('../middleware/multer');
 const { users } = require('../controllers');
 
 

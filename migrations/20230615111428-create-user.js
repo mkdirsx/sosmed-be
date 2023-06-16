@@ -10,6 +10,9 @@ module.exports = {
         type: Sequelize.INTEGER,
         unique: true
       },
+      profilePicture: {
+        type: Sequelize.STRING
+      },
       username: {
         type: Sequelize.STRING,
         unique: true
@@ -18,8 +21,14 @@ module.exports = {
         type: Sequelize.STRING,
         unique: true
       },
+      desc: {
+        type: Sequelize.STRING
+      },
       password: {
         type: Sequelize.STRING
+      },
+      code: {
+        type: Sequelize.INTEGER
       },
       status: {
         type: Sequelize.STRING

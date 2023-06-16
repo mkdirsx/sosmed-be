@@ -7,7 +7,7 @@ module.exports = {
     getAll: async(req, res) => {
         try {
             const result = await user.findAll({
-                attributes: ['id', 'username', 'email', 'status']
+                attributes: ['id', 'profilePicture', 'username', 'email', 'status']
             });
 
             return res.status(200).send({
@@ -33,7 +33,7 @@ module.exports = {
                 where: {
                     id: id
                 },
-                attributes: ['id', 'username', 'email', 'status']
+                attributes: ['id', 'profilePicture', 'username', 'email', 'status']
             });
 
             return res.status(200).send({
@@ -95,8 +95,10 @@ module.exports = {
                 message: `Welcome, ${result.username} !`,
                 data: {
                     id: result.id,
+                    profilePicture: result.profilePicture,
                     username: result.username,
                     email: result.email,
+                    desc: result.desc,
                     status: result.status
                 }
             });
@@ -112,7 +114,7 @@ module.exports = {
 
     createUser: async(req, res) => {
         try {
-            const { username, email, password} = req.body;
+            const { username, email, password } = req.body;
 
             const existingUser = await user.findAll();
             
@@ -134,11 +136,14 @@ module.exports = {
             }
 
             const hash = await bcrypt.hash(password, Number(process.env.SALT));
-
+            const code = Math.floor(Math.random()*90000) + 10000;
+            
             const result = await user.create({
                username: username,
+               profilePicture: process.env.LINK + '/PP-1686904860744.png',
                password: hash,
                email: email,
+               code: code,
                status: 'unverified' 
             });
 
