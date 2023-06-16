@@ -4,8 +4,8 @@ const { checkSchema, validationResult } = require('express-validator');
 const { profilePicture } = require('../middleware/multer');
 const { users } = require('../controllers');
 
-
 // GET //
+router.get('/:id', users.getOne);
 
 // POST //
 router.post('/', async(req, res, next) => {
