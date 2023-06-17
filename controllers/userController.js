@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const db = require('../models');
 const user = db.user;
+const post = db.post;
 require('dotenv').config();
 
 module.exports = {
@@ -32,6 +33,9 @@ module.exports = {
             const result = await user.findOne({
                 where: {
                     id: id
+                },
+                include: {
+                    model: post
                 },
                 attributes: ['id', 'profilePicture', 'username', 'email', 'status']
             });
