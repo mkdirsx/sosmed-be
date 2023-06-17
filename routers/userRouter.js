@@ -64,4 +64,7 @@ router.post('/login', async(req, res, next) => {
     }
 }, users.login);
 
+// PATCH //
+router.patch('/:id', profilePicture.single('image') , users.updateUser);
+
 module.exports = router;

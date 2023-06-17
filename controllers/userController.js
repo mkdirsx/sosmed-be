@@ -140,7 +140,7 @@ module.exports = {
             
             const result = await user.create({
                username: username,
-               profilePicture: process.env.LINK + '/PP-1686904860744.png',
+               profilePicture: process.env.DEFAULT + '/PP-1686904860744.png',
                password: hash,
                email: email,
                code: code,
@@ -159,6 +159,47 @@ module.exports = {
                 message: error.message,
                 data: null
             });
+        }
+    },
+
+    updateUser: async(req, res) => {
+        try {
+            const { id } = req.params;
+            const { username } = req.body;
+            const filename = req?.file?.filename;
+
+            if(filename) {
+                await user.update({
+                    username: username,
+                    profilePicture: process.env.LINK + '/' + filename
+                }, {
+                    where: {
+                        id: id
+                    }
+                });
+            }
+            else {
+                await user.update({
+                    username: username
+                }, {
+                    where: {
+                        id: id
+                    }
+                });
+            }
+
+            return res.status(200).send({
+                isError: false,
+                message: 'Changes saved !',
+                data: null
+            });
+        }
+        catch(error) {
+            return res.status(500).send({
+                isError: true,
+                message: error.message,
+                data: null
+            })
         }
     }
 }
