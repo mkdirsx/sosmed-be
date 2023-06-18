@@ -1,13 +1,14 @@
 const bcrypt = require('bcrypt');
 const db = require('../models');
 const user = db.user;
+const post = db.post;
 require('dotenv').config();
 
 module.exports = {
     getAll: async(req, res) => {
         try {
             const result = await user.findAll({
-                attributes: ['id', 'username', 'email', 'status']
+                attributes: ['id', 'profilePicture', 'username', 'email', 'status']
             });
 
             return res.status(200).send({
@@ -33,7 +34,10 @@ module.exports = {
                 where: {
                     id: id
                 },
-                attributes: ['id', 'username', 'email', 'status']
+                include: {
+                    model: post
+                },
+                attributes: ['id', 'profilePicture', 'username', 'email', 'desc', 'status']
             });
 
             return res.status(200).send({
@@ -92,11 +96,13 @@ module.exports = {
 
             return res.status(200).send({
                 isError: false,
-                message: 'GET Success',
+                message: `Welcome, ${result.username} !`,
                 data: {
                     id: result.id,
+                    profilePicture: result.profilePicture,
                     username: result.username,
                     email: result.email,
+                    desc: result.desc,
                     status: result.status
                 }
             });
@@ -112,7 +118,7 @@ module.exports = {
 
     createUser: async(req, res) => {
         try {
-            const { username, email, password} = req.body;
+            const { username, email, password } = req.body;
 
             const existingUser = await user.findAll();
             
@@ -134,11 +140,15 @@ module.exports = {
             }
 
             const hash = await bcrypt.hash(password, Number(process.env.SALT));
-
+            const code = Math.floor(Math.random()*90000) + 10000;
+            
             const result = await user.create({
                username: username,
+               profilePicture: process.env.DEFAULT + '/PP-1686904860744.png',
                password: hash,
                email: email,
+               desc: '',
+               code: code,
                status: 'unverified' 
             });
 
@@ -154,6 +164,49 @@ module.exports = {
                 message: error.message,
                 data: null
             });
+        }
+    },
+
+    updateUser: async(req, res) => {
+        try {
+            const { id } = req.params;
+            const { username, desc } = req.body;
+            const filename = req?.file?.filename;
+
+            if(filename) {
+                await user.update({
+                    username: username,
+                    desc : desc,
+                    profilePicture: process.env.LINK + '/' + filename
+                }, {
+                    where: {
+                        id: id
+                    }
+                });
+            }
+            else {
+                await user.update({
+                    username: username,
+                    desc: desc
+                }, {
+                    where: {
+                        id: id
+                    }
+                });
+            }
+
+            return res.status(200).send({
+                isError: false,
+                message: 'Changes saved !',
+                data: null
+            });
+        }
+        catch(error) {
+            return res.status(500).send({
+                isError: true,
+                message: error.message,
+                data: null
+            })
         }
     }
 }
