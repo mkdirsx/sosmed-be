@@ -9,8 +9,11 @@ module.exports = {
             const result = await post.findAll({
                 include: {
                     model: user,
-                    attributes: ['id', 'username', 'profilePicture', 'status']
-                }
+                    attributes: ['id', 'username', 'profilePicture', 'status', 'createdAt']
+                },
+                order: [
+                    ['createdAt', 'DESC']
+                ]
             });
 
             return res.status(200).send({
@@ -34,12 +37,15 @@ module.exports = {
 
             const result = await post.findAll({
                 where: {
-                    id: id
+                    userId: id
                 },
                 include: {
                     model: user,
                     attributes: ['id', 'username', 'profilePicture', 'status']
-                }
+                },
+                order: [
+                    ['createdAt', 'ASC']
+                ]
             });
 
             return res.status(200).send({
@@ -73,6 +79,59 @@ module.exports = {
                 message: 'new post created !',
                 data: null
             })
+        }
+        catch(error) {
+            return res.status(500).send({
+                isError: true,
+                message: error.message,
+                data: null
+            });
+        }
+    },
+
+    updatePost: async(req, res) => {
+        try {
+            const { id } = req.params;
+            const { newMessage } = req.body;
+            
+            await post.update({
+                caption: newMessage
+            }, {
+                where: {
+                    id: id
+                }
+            });
+
+            return res.status(200).send({
+                isError: false,
+                message: 'Post updated !',
+                data: null
+            });
+        }
+        catch(error) {
+            return res.status(500).send({
+                isError: true,
+                message: error.message,
+                data: null
+            });
+        }
+    },
+
+    deletePost: async(req, res) => {
+        try {
+            const { id } = req.params;
+            
+            await post.destroy({
+                where: {
+                    id: id
+                }
+            });
+
+            return res.status(200).send({
+                isError: false,
+                message: 'Post deleted !',
+                data: null
+            });
         }
         catch(error) {
             return res.status(500).send({

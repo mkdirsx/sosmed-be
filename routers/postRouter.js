@@ -35,4 +35,26 @@ router.post('/', postImage.single('image'), async(req, res, next) => {
     }
 }, posts.createPost);
 
+// PATCH //
+router.patch('/:id', async(req, res, next) => {
+    await checkSchema({
+        'newMessage': {
+            errorMessage: 'new caption cannot be empty',
+            notEmpty: true
+        }
+    }).run(req);
+
+    const result = validationResult(req);
+    if(!result.isEmpty()) {
+        return res.status(400).send({
+            isError: true,
+            message: result.errors,
+            data: null
+        });
+    }
+    else {
+        next();
+    }
+}, posts.updatePost);
+
 module.exports = router;
