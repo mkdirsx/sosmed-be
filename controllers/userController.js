@@ -37,7 +37,7 @@ module.exports = {
                 include: {
                     model: post
                 },
-                attributes: ['id', 'profilePicture', 'username', 'email', 'status']
+                attributes: ['id', 'profilePicture', 'username', 'email', 'desc', 'status']
             });
 
             return res.status(200).send({
@@ -147,6 +147,7 @@ module.exports = {
                profilePicture: process.env.DEFAULT + '/PP-1686904860744.png',
                password: hash,
                email: email,
+               desc: '',
                code: code,
                status: 'unverified' 
             });
@@ -169,12 +170,13 @@ module.exports = {
     updateUser: async(req, res) => {
         try {
             const { id } = req.params;
-            const { username } = req.body;
+            const { username, desc } = req.body;
             const filename = req?.file?.filename;
 
             if(filename) {
                 await user.update({
                     username: username,
+                    desc : desc,
                     profilePicture: process.env.LINK + '/' + filename
                 }, {
                     where: {
@@ -184,7 +186,8 @@ module.exports = {
             }
             else {
                 await user.update({
-                    username: username
+                    username: username,
+                    desc: desc
                 }, {
                     where: {
                         id: id

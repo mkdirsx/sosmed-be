@@ -57,4 +57,7 @@ router.patch('/:id', async(req, res, next) => {
     }
 }, posts.updatePost);
 
+// DELETE //
+router.delete('/:id', posts.deletePost);
+
 module.exports = router;

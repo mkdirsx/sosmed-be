@@ -12,6 +12,9 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       user.hasMany(models.post, {
         foreignKey: 'userId'
+      });
+      user.hasMany(models.like, {
+        foreignKey: 'userId'
       })
     }
   }

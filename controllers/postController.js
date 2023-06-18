@@ -1,19 +1,29 @@
 const db = require('../models');
 const user = db.user;
 const post = db.post;
+const like = db.like;
 require('dotenv').config();
 
 module.exports = {
     getAll: async(req, res) => {
         try {
-            const result = await post.findAll({
-                include: {
-                    model: user,
-                    attributes: ['id', 'username', 'profilePicture', 'status', 'createdAt']
-                },
+            const { page } = req.query;
+            const limit = 5;
+            
+            const result = await post.findAndCountAll({
+                include: [
+                    {
+                        model: user,
+                        attributes: ['id', 'username', 'profilePicture', 'status', 'createdAt']
+                    },
+                    {
+                        model: like
+                    }
+                ],
                 order: [
                     ['createdAt', 'DESC']
-                ]
+                ],
+                limit: limit * page || limit
             });
 
             return res.status(200).send({
@@ -34,18 +44,26 @@ module.exports = {
     getUserAll: async(req, res) => {
         try {
             const { id } = req.params;
-
-            const result = await post.findAll({
+            const { page } = req.query;
+            const limit = 5;
+            
+            const result = await post.findAndCountAll({
                 where: {
                     userId: id
                 },
-                include: {
-                    model: user,
-                    attributes: ['id', 'username', 'profilePicture', 'status']
-                },
+                include: [
+                    {
+                        model: user,
+                        attributes: ['id', 'username', 'profilePicture', 'status']
+                    },
+                    {
+                        model: like
+                    }
+                ],
                 order: [
                     ['createdAt', 'ASC']
-                ]
+                ],
+                limit: limit * page || limit
             });
 
             return res.status(200).send({
