@@ -2,6 +2,7 @@ const express = require('express');
 const { checkSchema, validationResult } = require('express-validator');
 const { posts } = require('../controllers');
 const { postImage } = require('../middleware/multerPost');
+const authorization = require('../middleware/authorization');
 
 const router = express.Router();
 
@@ -37,7 +38,7 @@ router.post('/', postImage.single('image'), async(req, res, next) => {
 }, posts.createPost);
 
 // PATCH //
-router.patch('/:id', async(req, res, next) => {
+router.patch('/:id', authorization.isOwner, async(req, res, next) => {
     await checkSchema({
         'newMessage': {
             errorMessage: 'new caption cannot be empty',

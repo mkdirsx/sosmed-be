@@ -1,4 +1,5 @@
 const db = require('../models');
+const Sequelize = require('sequelize')
 const user = db.user;
 const post = db.post;
 const like = db.like;
@@ -62,7 +63,7 @@ module.exports = {
                     }
                 ],
                 order: [
-                    ['createdAt', 'ASC']
+                    ['createdAt', 'DESC']
                 ],
                 limit: limit * page || limit
             });
@@ -84,8 +85,10 @@ module.exports = {
 
     getOne: async(req, res) => {
         try {           
-            const { id } = req.params; 
+            const { id } = req.params;
+            const { page } = req.query; 
             const result = await post.findOne({
+                subQuery: false,
                 include: [
                     {
                         model: user,
@@ -96,11 +99,16 @@ module.exports = {
                     },
                     {
                         model: comment,
+                        attributes: ['id', 'userId', 'postId', 'comment', 'createdAt'],
                         include: {
                             model: user,
                             attributes: ['id', 'username', 'profilePicture', 'status', 'createdAt']
-                        }
-                    }
+                        },
+                        order: [
+                            ['createdAt', 'DESC']
+                        ],
+                        limit: 5 * page,
+                    },
                 ],
                 where: {
                     id: id

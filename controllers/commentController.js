@@ -1,12 +1,12 @@
 const db = require('../models');
-const comment = db.comment;
+const DBcomment = db.comment;
 
 module.exports = {
     createComment: async(req, res) => {
         try {
             const { userId, postId, comment } = req.body;
 
-            await comment.create({
+            await DBcomment.create({
                 userId: userId,
                 postId: postId,
                 comment: comment
@@ -29,9 +29,10 @@ module.exports = {
 
     updateComment: async(req, res) => {
         try {
-            const { id, newComment } = req.body;
+            const { newComment } = req.body;
+            const { id } = req.params;
 
-            await comment.update({
+            await DBcomment.update({
                 comment: newComment
             }, {
                 where: {
