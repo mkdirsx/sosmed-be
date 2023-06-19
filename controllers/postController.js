@@ -1,7 +1,9 @@
 const db = require('../models');
+const Sequelize = require('sequelize')
 const user = db.user;
 const post = db.post;
 const like = db.like;
+const comment = db.comment;
 require('dotenv').config();
 
 module.exports = {
@@ -61,9 +63,56 @@ module.exports = {
                     }
                 ],
                 order: [
-                    ['createdAt', 'ASC']
+                    ['createdAt', 'DESC']
                 ],
                 limit: limit * page || limit
+            });
+
+            return res.status(200).send({
+                isError: false,
+                message: 'GET success !',
+                data: result
+            });
+        }
+        catch(error) {
+            return res.status(500).send({
+                isError: true,
+                message: error.message,
+                data: null
+            });
+        }
+    },
+
+    getOne: async(req, res) => {
+        try {           
+            const { id } = req.params;
+            const { page } = req.query; 
+            const result = await post.findOne({
+                subQuery: false,
+                include: [
+                    {
+                        model: user,
+                        attributes: ['id', 'username', 'profilePicture', 'status', 'createdAt']
+                    },
+                    {
+                        model: like
+                    },
+                    {
+                        model: comment,
+                        attributes: ['id', 'userId', 'postId', 'comment', 'createdAt'],
+                        include: {
+                            model: user,
+                            attributes: ['id', 'username', 'profilePicture', 'status', 'createdAt']
+                        },
+                        order: [
+                            ['createdAt', 'DESC']
+                        ],
+                        limit: 5 * page,
+                    },
+                ],
+                where: {
+                    id: id
+                }
             });
 
             return res.status(200).send({

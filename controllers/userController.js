@@ -1,7 +1,12 @@
 const bcrypt = require('bcrypt');
+const transporter = require('../transport/transport');
+const handlebars = require('handlebars');
+const jwt = require('jsonwebtoken');
+const fs = require('fs');
 const db = require('../models');
 const user = db.user;
 const post = db.post;
+const like = db.like;
 require('dotenv').config();
 
 module.exports = {
@@ -30,15 +35,31 @@ module.exports = {
         try {
             const { id } = req.params;
 
-            const result = await user.findOne({
+            let result = await user.findOne({
                 where: {
                     id: id
                 },
-                include: {
-                    model: post
-                },
+                include: [ 
+                    {
+                        model: post
+                    },
+                    {
+                        model: like
+                    }
+                ],
                 attributes: ['id', 'profilePicture', 'username', 'email', 'desc', 'status']
             });
+
+            const censorWord = (str) => {
+                return str[0] + "*".repeat(str.length - 2) + str.slice(-1);
+            }
+             
+            const censorEmail = (email) => {
+                 var arr = email.split("@");
+                 return censorWord(arr[0]) + "@" + censorWord(arr[1]);
+            }
+
+            result.email = censorEmail(result.email);
 
             return res.status(200).send({
                 isError: false,
@@ -65,14 +86,24 @@ module.exports = {
                 result = await user.findOne({
                     where: {
                         email: username
-                    }
+                    },
+                    include: [ 
+                        {
+                            model: like
+                        }
+                    ]
                 });
             }
             else {
                 result = await user.findOne({
                     where: {
                         username: username
-                    }
+                    },
+                    include: [ 
+                        {
+                            model: like
+                        }
+                    ]
                 });
             }
 
@@ -94,16 +125,41 @@ module.exports = {
                 });
             }
 
+            const censorWord = (str) => {
+                return str[0] + "*".repeat(str.length - 2) + str.slice(-1);
+            }
+             
+            const censorEmail = (email) => {
+                 var arr = email.split("@");
+                 return censorWord(arr[0]) + "@" + censorWord(arr[1]);
+            }
+
+            const censoredEmail = censorEmail(result.email);
+            const token = jwt.sign(
+                {
+                    id: result.id,
+                    status: result.status,
+                },
+                process.env.KEY,
+                {
+                    expiresIn: '12h'
+                }
+            )
+
             return res.status(200).send({
                 isError: false,
                 message: `Welcome, ${result.username} !`,
-                data: {
-                    id: result.id,
-                    profilePicture: result.profilePicture,
-                    username: result.username,
-                    email: result.email,
-                    desc: result.desc,
-                    status: result.status
+                data:{
+                    user: {
+                        id: result.id,
+                        profilePicture: result.profilePicture,
+                        username: result.username,
+                        email: censoredEmail,
+                        desc: result.desc,
+                        status: result.status,
+                        likes: result.likes
+                    },
+                    token: token
                 }
             });
         }
@@ -140,7 +196,6 @@ module.exports = {
             }
 
             const hash = await bcrypt.hash(password, Number(process.env.SALT));
-            const code = Math.floor(Math.random()*90000) + 10000;
             
             const result = await user.create({
                username: username,
@@ -148,7 +203,6 @@ module.exports = {
                password: hash,
                email: email,
                desc: '',
-               code: code,
                status: 'unverified' 
             });
 
@@ -207,6 +261,123 @@ module.exports = {
                 message: error.message,
                 data: null
             })
+        }
+    },
+
+    sendEmail: async(req, res) => {
+        try {
+            const { id } = req.params;
+            const verify = Math.floor(Math.random()*90000) + 10000;
+            
+            const recipient = await user.findOne({
+                where: {
+                    id: id
+                }
+            });
+
+            if(!recipient) {
+                return res.status(400).send({
+                    isError: true,
+                    message: 'Error: no recipient!',
+                    data: null
+                });
+            }
+
+            await user.update({
+                code: verify
+            }, {
+                where: {
+                    id: id
+                }
+            });
+            
+            const template = handlebars.compile(
+                fs.readFileSync('./Public/templates/verifyEmail.html', {
+                    encoding: 'utf-8'
+                })
+            );
+
+            const domain = `localhost:3000`;
+            const path = `$2y$10$Xe2xcXHL7.faauuauzNaOuNuWwIffUCfXT0u9Wh25uPj7IoMzJhte`;
+            const code = verify;
+            const data = {
+                "username": recipient.username,
+                "domain": domain,
+                "path": path,
+                "code": code
+            }
+
+            const emailTemplate = template(data);
+            
+            transporter.sendMail({
+               from: 'nodemailer',
+               to: `${recipient.email}`,
+               subject: 'Account Verification',
+               html: emailTemplate
+            })
+            return res.status(200).send({
+                isError: false,
+                message: 'Email has been sent !',
+                data: emailTemplate
+            });
+        }
+        catch(error) {
+            return res.status(500).send({
+                isError: true,
+                message: error.message,
+                data: null
+            });
+        }
+    },
+
+    verifyAccount: async(req, res) => {
+        try {
+            const { code } = req.body;
+            const { id } = req.params;
+
+            const existingUser = await user.findOne({
+                where: {
+                    id: id
+                }
+            });
+
+            if(!existingUser) {
+                return res.status(400).send({
+                    isError: true,
+                    message: 'Bad request !',
+                    data: null
+                });
+            }
+
+            if(existingUser.code === Number(code)) {
+                await user.update({
+                    status: 'verified',
+                }, {
+                    where: {
+                        id: id
+                    }
+                })
+            }
+            else {
+                return res.status(400).send({
+                    isError: true,
+                    message: 'Bad request !',
+                    data: null
+                });
+            }
+
+            return res.status(200).send({
+                isError: false,
+                message: 'Account Verified !',
+                data: null
+            });
+        }
+        catch(error) {
+            return res.status(500).send({
+                isError: true,
+                message: error.message,
+                data: null
+            });
         }
     }
 }

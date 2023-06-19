@@ -5,6 +5,7 @@ const { profilePicture } = require('../middleware/multer');
 const { users } = require('../controllers');
 
 // GET //
+router.get('/activation/:id', users.sendEmail);
 router.get('/:id', users.getOne);
 
 // POST //
@@ -65,6 +66,7 @@ router.post('/login', async(req, res, next) => {
 }, users.login);
 
 // PATCH //
+router.patch('/verify/:id', users.verifyAccount);
 router.patch('/:id', profilePicture.single('image') , users.updateUser);
 
 module.exports = router;
