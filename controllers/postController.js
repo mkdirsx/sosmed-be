@@ -132,9 +132,17 @@ module.exports = {
 
     createPost: async(req, res) => {
         try {
-            const { caption, userId } = req.body;
+            const { caption, userId, status } = req.body;
             const filename = req?.file?.filename;
 
+            if(status !== 'verified') {
+                return res.status(400).send({
+                    isError: true,
+                    message: 'user must be verified to comment !',
+                    data: null
+                });
+            }
+            
             await post.create({
                caption: caption,
                image: (filename)? process.env.POST + '/' + filename : null,

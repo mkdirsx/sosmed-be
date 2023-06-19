@@ -224,9 +224,17 @@ module.exports = {
     updateUser: async(req, res) => {
         try {
             const { id } = req.params;
-            const { username, desc } = req.body;
+            const { username, desc, status } = req.body;
             const filename = req?.file?.filename;
 
+            if(status !== 'verified') {
+                return res.status(400).send({
+                    isError: true,
+                    message: 'user must be verified to comment !',
+                    data: null
+                });
+            }
+            
             if(filename) {
                 await user.update({
                     username: username,

@@ -4,7 +4,15 @@ const DBcomment = db.comment;
 module.exports = {
     createComment: async(req, res) => {
         try {
-            const { userId, postId, comment } = req.body;
+            const { userId, postId, comment, status } = req.body;
+
+            if(status !== 'verified') {
+                return res.status(400).send({
+                    isError: true,
+                    message: 'user must be verified to comment !',
+                    data: null
+                });
+            }
 
             await DBcomment.create({
                 userId: userId,
