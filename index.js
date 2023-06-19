@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-const { users, posts, likes } = require('./routers');
+const { users, posts, likes, comments } = require('./routers');
 
 const app = express();
 app.use(express.static('Public'));
@@ -18,6 +18,7 @@ app.get('/', (req, res) => {
 app.use('/auth', users);
 app.use('/posts', posts);
 app.use('/likes', likes);
+app.use('/comments', comments);
 
 app.listen(process.env.PORT, () => {
     console.log('API running in port:', process.env.PORT);

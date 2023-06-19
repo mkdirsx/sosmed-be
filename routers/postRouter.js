@@ -7,6 +7,7 @@ const router = express.Router();
 
 // GET //
 router.get('/', posts.getAll);
+router.get('/one/:id', posts.getOne);
 router.get('/:id', posts.getUserAll);
 
 // POST //

@@ -2,6 +2,7 @@ const db = require('../models');
 const user = db.user;
 const post = db.post;
 const like = db.like;
+const comment = db.comment;
 require('dotenv').config();
 
 module.exports = {
@@ -64,6 +65,46 @@ module.exports = {
                     ['createdAt', 'ASC']
                 ],
                 limit: limit * page || limit
+            });
+
+            return res.status(200).send({
+                isError: false,
+                message: 'GET success !',
+                data: result
+            });
+        }
+        catch(error) {
+            return res.status(500).send({
+                isError: true,
+                message: error.message,
+                data: null
+            });
+        }
+    },
+
+    getOne: async(req, res) => {
+        try {           
+            const { id } = req.params; 
+            const result = await post.findOne({
+                include: [
+                    {
+                        model: user,
+                        attributes: ['id', 'username', 'profilePicture', 'status', 'createdAt']
+                    },
+                    {
+                        model: like
+                    },
+                    {
+                        model: comment,
+                        include: {
+                            model: user,
+                            attributes: ['id', 'username', 'profilePicture', 'status', 'createdAt']
+                        }
+                    }
+                ],
+                where: {
+                    id: id
+                }
             });
 
             return res.status(200).send({

@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const db = require('../models');
 const user = db.user;
 const post = db.post;
+const like = db.like;
 require('dotenv').config();
 
 module.exports = {
@@ -34,9 +35,14 @@ module.exports = {
                 where: {
                     id: id
                 },
-                include: {
-                    model: post
-                },
+                include: [ 
+                    {
+                        model: post
+                    },
+                    {
+                        model: like
+                    }
+                ],
                 attributes: ['id', 'profilePicture', 'username', 'email', 'desc', 'status']
             });
 
@@ -65,14 +71,24 @@ module.exports = {
                 result = await user.findOne({
                     where: {
                         email: username
-                    }
+                    },
+                    include: [ 
+                        {
+                            model: like
+                        }
+                    ]
                 });
             }
             else {
                 result = await user.findOne({
                     where: {
                         username: username
-                    }
+                    },
+                    include: [ 
+                        {
+                            model: like
+                        }
+                    ]
                 });
             }
 
@@ -103,7 +119,8 @@ module.exports = {
                     username: result.username,
                     email: result.email,
                     desc: result.desc,
-                    status: result.status
+                    status: result.status,
+                    likes: result.likes
                 }
             });
         }
